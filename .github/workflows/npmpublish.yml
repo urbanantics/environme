@@ -12,6 +12,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12
+      - run: export dateTime=`date +%y%m%d%H%M%S`
       - run: echo ::set-env name=dateTime::$(date +%y%m%d%H%M%S)
       - run: npm version ${{env.version}}.$dateTime
         working-directory: ./source/javascript
