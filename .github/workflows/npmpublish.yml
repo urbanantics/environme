@@ -13,9 +13,10 @@ jobs:
         with:
           node-version: 12
       - run: export dateTime=`date +%y%m%d%H%M%S`
-      - run: echo ${{env.dateTime}}
-      - run: echo ${{env.version}}.${{env.dateTime}}
-      - run: npm version ${{env.version}}.${{env.dateTime}}
+      - run: echo ::set-env name=dateTime::$(date +%y%m%d%H%M%S)
+      - run: echo ${{dateTime}}
+      - run: echo ${{env.version}}.${{dateTime}}
+      - run: npm version ${{env.version}}.${{dateTime}}
       - run: npm ci
         working-directory: ./source/javascript
       - run: npm test
