@@ -1,0 +1,14 @@
+{
+  "name": "environme",
+  "version": "1.0.0",
+  "description": "Build Utility, string replace based on environment configuration",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Reuben, Hutton",
+  "license": "ISC",
+  "dependencies": {
+    "mocha": "^7.0.1"
+  }
+}
