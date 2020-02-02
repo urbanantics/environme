@@ -10,5 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "mocha": "^7.0.1"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/urbanantics/environme/issues"
+  },
+  "homepage": "https://environ.me"
 }
