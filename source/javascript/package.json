@@ -2,11 +2,11 @@
   "name": "@urbanantics/environme",
   "version": "1.0.1",
   "description": "Build Utility, string replace based on environment configuration",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "mocha"
   },
-  "author": "Reuben, Hutton",
+  "author": "ReubenH",
   "license": "ISC",
   "dependencies": {
     "mocha": "^7.0.1"
