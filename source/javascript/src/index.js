@@ -1,15 +1,39 @@
-function helloWorld() {
-    console.log('Hello World!');
-    return 'Hello World!'
+/**
+ * Simple object check.
+ * @param item
+ * @returns {boolean}
+ */
+function isObject(item) {
+  return (item && typeof item === 'object' && !Array.isArray(item));
+}
+
+/**
+ * Deep merge two objects.
+ * https://stackoverflow.com/questions/27936772/how-to-deep-merge-instead-of-shallow-merge
+ * @param target
+ * @param ...sources
+ */
+function mergeDeep(target, ...sources) {
+  if (!sources.length) return target;
+  const source = sources.shift();
+
+  if (isObject(target) && isObject(source)) {
+    for (const key in source) {
+      if (isObject(source[key])) {
+        if (!target[key]) Object.assign(target, { [key]: {} });
+        mergeDeep(target[key], source[key]);
+      } else {
+        Object.assign(target, { [key]: source[key] });
+      }
+    }
   }
-  function doSomethingAwesome() {
-    console.log('Doing something awesome...');  
-  }
-  function doSomethingElse() {
-    console.log('Now something else...'); 
-  }
-  module.exports = {
-    helloWorld: helloWorld,
-    doSomethingAwesome: doSomethingAwesome,
-    doSomethingElse: doSomethingElse
-  }
+
+  return mergeDeep(target, ...sources);
+}
+
+module.exports = {
+  mergeDeep: mergeDeep
+}
+
+const merged = mergeDeep({a: 1}, { b : { c: { d: { e: { f: 12345}}}}});  
+console.log(merged.b.c);
