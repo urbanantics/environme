@@ -43,9 +43,8 @@ describe('Flatten Object', function() {
     }
 
     const targetEnvironment = "TEST"
-    const environmentList = ["TEST", "PROD"]
 
-    const outputObj = test.flattenObject(sourceObj, targetEnvironment, environmentList)
+    const outputObj = test.flattenObject(sourceObj, targetEnvironment)
     assert.equal(sourceObj, outputObj);
     assert.equal(sourceObj["connectionString"], "TestDB1")
   });
@@ -60,9 +59,8 @@ describe('Flatten Object', function() {
     }
 
     const targetEnvironment = "TEST"
-    const environmentList = ["TEST", "PROD"]
 
-    const outputObj = test.flattenObject(sourceObj, targetEnvironment, environmentList)
+    const outputObj = test.flattenObject(sourceObj, targetEnvironment)
     assert.equal(sourceObj, outputObj);
     assert.equal(sourceObj["connectionString"], "TestDB1")
   });
@@ -79,9 +77,8 @@ describe('Flatten Object', function() {
     }
 
     const targetEnvironment = "TEST"
-    const environmentList = ["TEST", "PROD"]
 
-    const outputObj = test.flattenObject(sourceObj, targetEnvironment, environmentList)
+    const outputObj = test.flattenObject(sourceObj, targetEnvironment)
     assert.equal(sourceObj, outputObj);
     assert.equal(sourceObj["connectionString"], "TestDB1")
   });
@@ -99,9 +96,8 @@ describe('Flatten Object', function() {
     }
 
     const targetEnvironment = "TEST"
-    const environmentList = ["TEST", "PROD"]
 
-    const outputObj = test.flattenObject(sourceObj, targetEnvironment, environmentList)
+    const outputObj = test.flattenObject(sourceObj, targetEnvironment)
     assert.equal(sourceObj, outputObj);
     assert.equal(sourceObj["connectionString"], "TestDB1")
   });
@@ -121,9 +117,68 @@ describe('Flatten Object', function() {
     var arrayRes = ["pr-app1", "pr-app2", "pr-app3", "pr-app4"];
 
     const targetEnvironment = "PROD"
-    const environmentList = ["DR", "PROD"]
 
-    const outputObj = test.flattenObject(sourceObj, targetEnvironment, environmentList)
+    const outputObj = test.flattenObject(sourceObj, targetEnvironment)
     assert.equal(JSON.stringify(outputObj.machineList), JSON.stringify(arrayRes));
   });
 });
+
+/************************* Convert String Template *******************************/
+describe('Convert String Template', function() {
+  it('Test convert basic string with basic object', function() {
+
+    const stringTemplate = `<!DOCTYPE html><html><body><$my_content$></body></html>`;
+    const envObj = {
+      my_content: "<div>Hello World!</div>"
+    };
+    const expectedString = `<!DOCTYPE html><html><body><div>Hello World!</div></body></html>`
+
+    const outputString = test.convertStringTemplate(stringTemplate, envObj)
+    assert.equal(outputString, expectedString);
+  });
+
+  it('Test Nested object is not string should be ignored 1', function() {
+
+    const stringTemplate = `<!DOCTYPE html><html><body><$my_content$></body></html>`;
+    const envObj = {
+      my_content: {
+        my_content: "<div>Hello World!</div>"
+      }
+    };
+    const expectedString = `<!DOCTYPE html><html><body><$my_content$></body></html>`
+
+    const outputString = test.convertStringTemplate(stringTemplate, envObj)
+    assert.equal(outputString, expectedString);
+  });
+
+  it('Test Nested object is not string should be ignored 2', function() {
+
+    const stringTemplate = `<!DOCTYPE html><html><body><$my_content$></body></html>`;
+    const envObj = {
+      my_content: {
+        my_content: null
+      }
+    };
+    const expectedString = `<!DOCTYPE html><html><body><$my_content$></body></html>`
+
+    const outputString = test.convertStringTemplate(stringTemplate, envObj)
+    assert.equal(outputString, expectedString);
+  });
+
+  it('Test convert basic string with environment object', function() {
+
+    const stringTemplate = `<!DOCTYPE html><html><body><$my_content$></body></html>`;
+    const envObj = {
+      my_content: "<div>Hello World!</div>",
+      PROD: {
+        my_content: "<div>## Production content ##</div>"
+      }
+    
+    };
+    const expectedString = `<!DOCTYPE html><html><body><div>## Production content ##</div></body></html>`
+
+    const outputString = test.convertStringTemplate(stringTemplate, envObj, "PROD")
+    assert.equal(outputString, expectedString);
+  });
+});
+

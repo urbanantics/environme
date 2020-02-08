@@ -1,4 +1,46 @@
 /**
+ * Convert String Template. Replaces string tokens with values from json object
+ * @param stringTemplate
+ * String template which contains tokens that will be replaced with values from envObj (json object) provided
+ * @param flatObj
+ * json object, whos values will be replaced into provided string template
+ * @returns {string}
+ * Converted string template
+ */
+function convertStringTemplate(
+  stringTemplate,
+  flatObj,
+  targetEnvironment
+) {
+
+  var returnString = stringTemplate;
+  var result = {};
+
+  const envtObj = flattenObject(flatObj, targetEnvironment)
+
+  // https://stackoverflow.com/questions/11592033/regex-match-text-between-tags
+  stringTemplate.match(/<\$(.*?)\$>/g).forEach(function (rawTag) {
+    var tag = rawTag.replace(/(^<\$)|(\$>)$/g, '');
+    var value = envtObj[tag]
+
+    if (value && value !== Object(value)) {
+
+      console.log(`RawTag ${rawTag} = ${value}`);
+
+      result[rawTag] = value;
+    }
+
+  });
+
+  for (const key in result) {
+
+    returnString = returnString.replace(key, result[key])
+  }
+
+  return returnString;
+}
+
+/**
  * Flatten Object.
  * @param source
  * json object containing configuration that will be flattened
@@ -11,41 +53,34 @@
  */
 function flattenObject(
   sourceObj,
-  targetEnvironment,
-  environmentList) {
+  targetEnvironment) {
 
-    for (const key in sourceObj) {
+  for (const key in sourceObj) {
 
-      var target = sourceObj[key];
+    var target = sourceObj[key];
 
-      if (isObject(target)) {
+    if (isObject(target)) {
 
-        console.log(`Key ${key} is object, recursing`);
+      console.log(`Key ${key} is object, recursing`);
 
-        var flattendObj = flattenObject(target, targetEnvironment, environmentList);
+      flattenObject(target, targetEnvironment);
 
-      } else {
+    } 
 
-        console.log(`Key ${key} = ${targetEnvironment}`);
+    if (key == targetEnvironment) {
 
-        var flattendObj = target;
-      
-      }
+      console.log(`Merging and removing Env key ${key}`);
 
-      if(key == targetEnvironment){
+      const envProp = sourceObj[key];
 
-        console.log(`Merging and removing Env key ${key}`);
+      delete sourceObj[key];
 
-        const envProp = sourceObj[key];
-
-        delete sourceObj[key];
-
-        sourceObj = mergeDeep(sourceObj, envProp)
-      }
-
+      sourceObj = mergeDeep(sourceObj, envProp)
     }
 
-    return sourceObj
+  }
+
+  return sourceObj
 }
 
 
@@ -84,6 +119,7 @@ function mergeDeep(target, ...sources) {
 }
 
 module.exports = {
+  convertStringTemplate: convertStringTemplate,
   mergeDeep: mergeDeep,
   flattenObject: flattenObject
 }
