@@ -1,125 +1,38 @@
-/**
- * Convert String Template. Replaces string tokens with values from json object
- * @param stringTemplate
- * String template which contains tokens that will be replaced with values from envObj (json object) provided
- * @param flatObj
- * json object, whos values will be replaced into provided string template
- * @returns {string}
- * Converted string template
- */
-function convertStringTemplate(
-  stringTemplate,
-  flatObj,
-  targetEnvironment
-) {
+#!/usr/bin/env node
 
-  var returnString = stringTemplate;
-  var result = {};
+const chalk = require('chalk');
+const clear = require('clear');
+const figlet = require('figlet');
+const yargs = require("yargs");
+const lib = require('./environme')
 
-  const envtObj = flattenObject(flatObj, targetEnvironment)
+// https://www.sitepoint.com/javascript-command-line-interface-cli-node-js/
 
-  // https://stackoverflow.com/questions/11592033/regex-match-text-between-tags
-  stringTemplate.match(/<\$(.*?)\$>/g).forEach(function (rawTag) {
-    var tag = rawTag.replace(/(^<\$)|(\$>)$/g, '');
-    var value = envtObj[tag]
+clear();
 
-    if (value && value !== Object(value)) {
+console.log(
+  chalk.yellowBright(
+    figlet.textSync('environme', { horizontalLayout: 'full' })
+  )
+);
 
-      console.log(`RawTag ${rawTag} = ${value}`);
+const options = yargs
+  .usage("Usage: -path <path> -env <environment>")
+  .option("path", { alias: "p", describe: "Path to template file, can use wild card such as **/* to locate multiple files", type: "string", demandOption: true })
+  .option("env", { alias: "e", describe: "Target environment, which will be used to generate environmemt configuration", type: "string" })
+  .option("verbose", { alias: "v", describe: "Run with verbose logging", type: "boolean", default: false })
+  .argv;
 
-      result[rawTag] = value;
-    }
+  console.log(`--path ${options.path}`)
+  console.log(`--env ${options.env}`)
 
-  });
+  if(options.path){
+    lib.environMe(options.path, options.env, options.verbose);
+  } else {
 
-  for (const key in result) {
-
-    returnString = returnString.replace(key, result[key])
-  }
-
-  return returnString;
-}
-
-/**
- * Flatten Object.
- * @param source
- * json object containing configuration that will be flattened
- * @param targetEnvironment
- * environment who configs will override default config
- * @param environmentList
- * list of all the environments contained in the config
- * @returns {object}
- * Flattened json object
- */
-function flattenObject(
-  sourceObj,
-  targetEnvironment) {
-
-  for (const key in sourceObj) {
-
-    var target = sourceObj[key];
-
-    if (isObject(target)) {
-
-      console.log(`Key ${key} is object, recursing`);
-
-      flattenObject(target, targetEnvironment);
-
-    } 
-
-    if (key == targetEnvironment) {
-
-      console.log(`Merging and removing Env key ${key}`);
-
-      const envProp = sourceObj[key];
-
-      delete sourceObj[key];
-
-      sourceObj = mergeDeep(sourceObj, envProp)
-    }
-
-  }
-
-  return sourceObj
-}
-
-
-/**
- * Simple object check.
- * @param item
- * @returns {boolean}
- */
-function isObject(item) {
-  return (item && typeof item === 'object' && !Array.isArray(item));
-}
-
-
-/**
- * Deep merge two objects.
- * https://stackoverflow.com/questions/27936772/how-to-deep-merge-instead-of-shallow-merge
- * @param target
- * @param ...sources
- */
-function mergeDeep(target, ...sources) {
-  if (!sources.length) return target;
-  const source = sources.shift();
-
-  if (isObject(target) && isObject(source)) {
-    for (const key in source) {
-      if (isObject(source[key])) {
-        if (!target[key]) Object.assign(target, { [key]: {} });
-        mergeDeep(target[key], source[key]);
-      } else {
-        Object.assign(target, { [key]: source[key] });
-      }
+    if(!options.path){
+      console.error(`Could not run environme me as required parameter --path is empty`)
     }
   }
 
-  return mergeDeep(target, ...sources);
-}
 
-module.exports = {
-  convertStringTemplate: convertStringTemplate,
-  mergeDeep: mergeDeep,
-  flattenObject: flattenObject
-}
