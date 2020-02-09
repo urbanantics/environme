@@ -1,8 +1,0 @@
-config:
-    Pitbull:
-        url: https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg
-    Dalmation:
-        url: https://www.petguide.com/wp-content/uploads/2013/02/dalmatian-11-475x421.jpg
-    Dalmation2:
-        url: https://www.petguide.com/wp-content/uploads/2013/02/dalmatian-21-510x421.jpg
-    

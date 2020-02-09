@@ -226,23 +226,23 @@ describe('Run environMe command to convert text files based on environment confi
     const propsContent = `config:
     url: https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg`;
 
-    fs.writeFileSync("test\\test.template.html", templateContent, 'utf8')
-    fs.writeFileSync("test\\test.props.yml", propsContent, 'utf8')
+    fs.writeFileSync("test/test.template.html", templateContent, 'utf8')
+    fs.writeFileSync("test/test.props.yml", propsContent, 'utf8')
     
     // Act
     test.environMe("test/*", "PROD")
 
     // Assert
-    const fileExists = fs.existsSync("test\\test.html")
-    const actualContent = fs.readFileSync("test\\test.html", 'utf8')
+    const fileExists = fs.existsSync("test/test.html")
+    const actualContent = fs.readFileSync("test/test.html", 'utf8')
 
     assert.equal(fileExists, true);
     assert.equal(expectedContent, actualContent);
 
     // Tidy
-    //fs.unlinkSync("test\\test.html")
-    //fs.unlinkSync("test\\test.template.html")
-    //fs.unlinkSync("test\\test.props.yml")
+    fs.unlinkSync("test\\test.html")
+    fs.unlinkSync("test\\test.template.html")
+    fs.unlinkSync("test\\test.props.yml")
 
 
   });
