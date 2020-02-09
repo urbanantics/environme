@@ -1,6 +1,6 @@
 {
   "name": "@urbanantics/environme",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Build Utility, string replace based on environment configuration",
   "main": "src/index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "yargs": "^15.1.0"
   },
   "bin": {
-    "environme": "scr/index.js"
+    "environme": "src/index.js"
   },
   "bugs": {
     "url": "https://github.com/urbanantics/environme/issues"
