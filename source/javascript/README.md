@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="250" src="/images/green-tropical-palm.jpg">
+  <img width="250" src="images/green-tropical-palm.jpg">
 </p>
 <h1 align="center"> Environ Me </h1>
 <p align="center">
@@ -54,18 +54,17 @@ config:
     url: https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg
   PROD:
     url: https://www.petguide.com/wp-content/uploads/2013/02/dalmatian-11-475x421.jpg
-	
 ```
 
-Environme will look for files that have "*.template" in the name and then find the coresponding *.props.yml file, and use these 2 files to produce the corespondin output file
+Environme will look for files that have **&ast;.template** in the name and then find the coresponding **\&ast;.props.yml** file, and use these 2 files to produce the corespondin output file
 
-So say we have a file called *static-page.template.html* and props file called *static-page.props.yml*, and bother are in the folder static-content, running the following command:
+So say we have a file called **static-page.template.html** and props file called **static-page.props.yml**, and both are in the folder static-content, running the following command:
 
 ```bash
 environme --path static-content/* --env PROD
 ```
 
-would match:
+will match:
 ```
   static-content/static-page.template.html
   static-content/static-page.props.yml
@@ -96,14 +95,14 @@ with the folowing content:
 ```bash
 environme --path static-content/* -env TEST
 ```
-would produce
+will produce
 
  <div>
    <img src="https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"/>
  </div
   
   
-and running the command with no --env would produce the default
+and running the command with no --env will produce the default
 
 ```bash
 environme --path static-content/*
