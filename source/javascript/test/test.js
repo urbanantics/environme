@@ -240,9 +240,9 @@ describe('Run environMe command to convert text files based on environment confi
     assert.equal(expectedContent, actualContent);
 
     // Tidy
-    fs.unlinkSync("test\\test.html")
-    fs.unlinkSync("test\\test.template.html")
-    fs.unlinkSync("test\\test.props.yml")
+    fs.unlinkSync("test/test.html")
+    fs.unlinkSync("test/test.template.html")
+    fs.unlinkSync("test/test.props.yml")
 
 
   });
