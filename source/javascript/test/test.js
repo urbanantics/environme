@@ -238,3 +238,23 @@ describe('Run environMe command to convert text files based on environment confi
   });
 });
 
+/************************* Convert String Template *******************************/
+describe('Replace Environment Variable References', function () {
+  it('Replace Environment Variable References', function () {
+
+    const flatObj = {
+      seceret: "{$ seceretKey $}"
+    };
+
+    const envObj = {
+      seceretKey: "1234"
+    };
+    const expectedObj = {
+      seceret: "1234"
+    };
+
+    test.resolveVariableReferences(flatObj, envObj)
+
+    assert.equal(JSON.stringify(flatObj), JSON.stringify(expectedObj));
+  });
+});

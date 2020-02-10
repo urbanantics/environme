@@ -3,6 +3,44 @@ const fs = require('fs')
 const yaml = require('js-yaml');
 
 /**
+ * Simple object check.
+ * @param sourceObj
+ * Object that contains references to environment variables in the for of {$ variable_name $}
+ * @param envObj
+ * object that contains hash of environment variable key value pairs
+ * @returns updates sourceObj inline
+ */
+function resolveVariableReferences(sourceObj, envObj) {
+
+    for (const key in sourceObj) {
+
+        var target = sourceObj[key];
+
+        if (isObject(target)) {
+
+            resolveVariableReferences(target, envObj);
+
+        } else {
+
+            // https://stackoverflow.com/questions/11592033/regex-match-text-between-tags
+            target.match(/{\$(.*?)\$}/g).forEach(function (rawTag) {
+                var tag = rawTag.replace(/(^{\$\s*)|(\s*\$})$/g, '');
+                var value = Object.byString(envObj, tag);
+
+                if (value && value !== Object(value)) {
+
+                    sourceObj[key] = value;
+                }
+            });
+        }
+    }
+}
+
+module.exports = {
+    resolveVariableReferences: resolveVariableReferences,
+}
+
+/**
  * Environ Me, Accepts a listo of files as input and converts content based on configuration.
  * Files names must have the format *.template{.ext}
  * For instance app.template.config, the function will match config files called app.props.yml, and use the contents
@@ -17,207 +55,208 @@ function environMe(
     path,
     targetEnvironment,
     verboseLogs
-  ) {
-  
+) {
+
     try {
-  
-      // https://github.com/isaacs/node-glob
-  
-      const files = glob.sync(path);
-  
-      var templates = [];
-  
-      files.forEach(function (file) {
-        if (file.match(/\.template/)) {
-          console.log(`Matched template ${file}`);
-  
-          const temp = file.replace(/\.template.*/, '');
-          const ext = file.replace(/.*\.template/, '');
-          const propsFile = `${temp}.props.yml`;
-          const outputFile = `${temp}${ext}`;
-  
-          if (fs.existsSync(propsFile)) {
-            console.log(`Matched props file ${propsFile}`);
-            console.log(`Output file ${outputFile}`);
-  
-            templates.push({
-              file: file,
-              propsFile: propsFile,
-              outputFile: outputFile
-            });
-  
-          }
-        }
-      });
-  
-      if(verboseLogs){
-        console.log("List of template files to be environed");
-        console.log(templates);
-      }
-      
-      for (let index = 0; index < templates.length; index++) {
-        const template = templates[index];
-        const rawTemplate = fs.readFileSync(template.file, 'utf8');
-        const propsObj = yaml.safeLoad(fs.readFileSync(template.propsFile, 'utf8'));
-  
-        if(verboseLogs){
-            console.log("*** input yml config ***");
-            console.log(propsObj);
+
+        // https://github.com/isaacs/node-glob
+
+        const files = glob.sync(path);
+
+        var templates = [];
+
+        files.forEach(function (file) {
+            if (file.match(/\.template/)) {
+                console.log(`Matched template ${file}`);
+
+                const temp = file.replace(/\.template.*/, '');
+                const ext = file.replace(/.*\.template/, '');
+                const propsFile = `${temp}.props.yml`;
+                const outputFile = `${temp}${ext}`;
+
+                if (fs.existsSync(propsFile)) {
+                    console.log(`Matched props file ${propsFile}`);
+                    console.log(`Output file ${outputFile}`);
+
+                    templates.push({
+                        file: file,
+                        propsFile: propsFile,
+                        outputFile: outputFile
+                    });
+
+                }
+            }
+        });
+
+        if (verboseLogs) {
+            console.log("List of template files to be environed");
+            console.log(templates);
         }
 
-        const flatObj = flattenObject(propsObj, targetEnvironment)
+        for (let index = 0; index < templates.length; index++) {
+            const template = templates[index];
+            const rawTemplate = fs.readFileSync(template.file, 'utf8');
+            const propsObj = yaml.safeLoad(fs.readFileSync(template.propsFile, 'utf8'));
 
-        if(verboseLogs){
-            console.log("*** flattened yml config ***");
-            console.log(flatObj);
+            if (verboseLogs) {
+                console.log("*** input yml config ***");
+                console.log(propsObj);
+            }
+
+            const flatObj = flattenObject(propsObj, targetEnvironment)
+
+            if (verboseLogs) {
+                console.log("*** flattened yml config ***");
+                console.log(flatObj);
+            }
+
+            const outputString = convertStringTemplate(rawTemplate, flatObj);
+
+            fs.writeFileSync(template.outputFile, outputString, 'utf8');
+
+            return flatObj;
         }
-        
-        const outputString = convertStringTemplate(rawTemplate, flatObj);
-  
-        fs.writeFileSync(template.outputFile, outputString, 'utf8');
 
-        return flatObj;
-      }
-  
     } catch (err) {
-      console.error(err)
+        console.error(err)
     }
-  }
-  
-  
-  /**
-   * Convert String Template. Replaces string tokens with values from json object
-   * @param stringTemplate
-   * String template which contains tokens that will be replaced with values from envObj (json object) provided
-   * @param flatObj
-   * json object, whos values will be replaced into provided string template
-   * @returns {string}
-   * Converted string template
-   */
-  function convertStringTemplate(
+}
+
+
+/**
+ * Convert String Template. Replaces string tokens with values from json object
+ * @param stringTemplate
+ * String template which contains tokens that will be replaced with values from envObj (json object) provided
+ * @param flatObj
+ * json object, whos values will be replaced into provided string template
+ * @returns {string}
+ * Converted string template
+ */
+function convertStringTemplate(
     stringTemplate,
     flatObj
-  ) {
-  
+) {
+
     var returnString = stringTemplate;
     var result = {};
-    
+
     // https://stackoverflow.com/questions/11592033/regex-match-text-between-tags
     stringTemplate.match(/{\$(.*?)\$}/g).forEach(function (rawTag) {
-      var tag = rawTag.replace(/(^{\$\s*)|(\s*\$})$/g, '');
-      var value = Object.byString(flatObj, tag);
-  
-      if (value && value !== Object(value)) {
-  
-        result[rawTag] = value;
-      }
-  
+        var tag = rawTag.replace(/(^{\$\s*)|(\s*\$})$/g, '');
+        var value = Object.byString(flatObj, tag);
+
+        if (value && value !== Object(value)) {
+
+            result[rawTag] = value;
+        }
+
     });
-  
+
     for (const key in result) {
-  
-      returnString = returnString.replace(key, result[key])
+
+        returnString = returnString.replace(key, result[key])
     }
-  
+
     return returnString;
-  }
-  
-  /**
-   * Flatten Object.
-   * @param source
-   * json object containing configuration that will be flattened
-   * @param targetEnvironment
-   * environment who configs will override default config
-   * @param environmentList
-   * list of all the environments contained in the config
-   * @returns {object}
-   * Flattened json object
-   */
-  function flattenObject(
+}
+
+/**
+ * Flatten Object.
+ * @param source
+ * json object containing configuration that will be flattened
+ * @param targetEnvironment
+ * environment who configs will override default config
+ * @param environmentList
+ * list of all the environments contained in the config
+ * @returns {object}
+ * Flattened json object
+ */
+function flattenObject(
     sourceObj,
     targetEnvironment) {
-  
-    for (const key in sourceObj) {
-  
-      var target = sourceObj[key];
-  
-      if (isObject(target)) {
-  
-        flattenObject(target, targetEnvironment);
-  
-      }
-  
-      if (key == targetEnvironment) {
 
-        const envProp = sourceObj[key];
-  
-        delete sourceObj[key];
-  
-        sourceObj = mergeDeep(sourceObj, envProp)
-      }
-  
+    for (const key in sourceObj) {
+
+        var target = sourceObj[key];
+
+        if (isObject(target)) {
+
+            flattenObject(target, targetEnvironment);
+
+        }
+
+        if (key == targetEnvironment) {
+
+            const envProp = sourceObj[key];
+
+            delete sourceObj[key];
+
+            sourceObj = mergeDeep(sourceObj, envProp)
+        }
+
     }
-  
+
     return sourceObj
-  }
-  
-  
-  /**
-   * Simple object check.
-   * @param item
-   * @returns {boolean}
-   */
-  function isObject(item) {
+}
+
+
+/**
+ * Simple object check.
+ * @param item
+ * @returns {boolean}
+ */
+function isObject(item) {
     return (item && typeof item === 'object' && !Array.isArray(item));
-  }
-  
-  
-  /**
-   * Deep merge two objects.
-   * https://stackoverflow.com/questions/27936772/how-to-deep-merge-instead-of-shallow-merge
-   * @param target
-   * @param ...sources
-   */
-  function mergeDeep(target, ...sources) {
+}
+
+
+/**
+ * Deep merge two objects.
+ * https://stackoverflow.com/questions/27936772/how-to-deep-merge-instead-of-shallow-merge
+ * @param target
+ * @param ...sources
+ */
+function mergeDeep(target, ...sources) {
     if (!sources.length) return target;
     const source = sources.shift();
-  
+
     if (isObject(target) && isObject(source)) {
-      for (const key in source) {
-        if (isObject(source[key])) {
-          if (!target[key]) Object.assign(target, { [key]: {} });
-          mergeDeep(target[key], source[key]);
-        } else {
-          Object.assign(target, { [key]: source[key] });
+        for (const key in source) {
+            if (isObject(source[key])) {
+                if (!target[key]) Object.assign(target, { [key]: {} });
+                mergeDeep(target[key], source[key]);
+            } else {
+                Object.assign(target, { [key]: source[key] });
+            }
         }
-      }
     }
-  
+
     return mergeDeep(target, ...sources);
-  }
-  
-  
-  /**
-   * https://stackoverflow.com/questions/6491463/accessing-nested-javascript-objects-with-string-key
-   */
-  Object.byString = function (o, s) {
+}
+
+
+/**
+ * https://stackoverflow.com/questions/6491463/accessing-nested-javascript-objects-with-string-key
+ */
+Object.byString = function (o, s) {
     s = s.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
     s = s.replace(/^\./, '');           // strip a leading dot
     var a = s.split('.');
     for (var i = 0, n = a.length; i < n; ++i) {
-      var k = a[i];
-      if (k in o) {
-        o = o[k];
-      } else {
-        return;
-      }
+        var k = a[i];
+        if (k in o) {
+            o = o[k];
+        } else {
+            return;
+        }
     }
     return o;
-  }
-  
-  module.exports = {
+}
+
+module.exports = {
+    resolveVariableReferences: resolveVariableReferences,
     environMe: environMe,
     convertStringTemplate: convertStringTemplate,
     mergeDeep: mergeDeep,
     flattenObject: flattenObject
-  }
+}
