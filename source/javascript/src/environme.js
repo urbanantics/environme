@@ -64,17 +64,24 @@ function environMe(
             console.log("*** input yml config ***");
             console.log(propsObj);
         }
+
+        const flatObj = flattenObject(propsObj, targetEnvironment)
+
+        if(verboseLogs){
+            console.log("*** flattened yml config ***");
+            console.log(flatObj);
+        }
         
-        const outputString = convertStringTemplate(rawTemplate, propsObj, targetEnvironment, verboseLogs);
+        const outputString = convertStringTemplate(rawTemplate, flatObj);
   
         fs.writeFileSync(template.outputFile, outputString, 'utf8');
+
+        return flatObj;
       }
   
     } catch (err) {
       console.error(err)
     }
-  
-  
   }
   
   
@@ -89,25 +96,16 @@ function environMe(
    */
   function convertStringTemplate(
     stringTemplate,
-    flatObj,
-    targetEnvironment,
-    verboseLogs
+    flatObj
   ) {
   
     var returnString = stringTemplate;
     var result = {};
-  
-    const envObj = flattenObject(flatObj, targetEnvironment)
-
-    if(verboseLogs){
-        console.log("*** flattened yml config ***");
-        console.log(flatObj);
-    }
-  
+    
     // https://stackoverflow.com/questions/11592033/regex-match-text-between-tags
     stringTemplate.match(/{\$(.*?)\$}/g).forEach(function (rawTag) {
       var tag = rawTag.replace(/(^{\$\s*)|(\s*\$})$/g, '');
-      var value = Object.byString(envObj, tag);
+      var value = Object.byString(flatObj, tag);
   
       if (value && value !== Object(value)) {
   

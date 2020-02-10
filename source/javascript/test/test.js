@@ -132,7 +132,7 @@ describe('Convert String Template', function () {
     const envObj = {
       my_content: "<div>Hello World!</div>"
     };
-    const expectedString = `<!DOCTYPE html><html><body><div>Hello World!</div></body></html>`
+    const expectedString = `<!DOCTYPE html><html><body><div>Hello World!</div></body></html>`;
 
     const outputString = test.convertStringTemplate(stringTemplate, envObj)
     assert.equal(outputString, expectedString);
@@ -181,23 +181,6 @@ describe('Convert String Template', function () {
     const outputString = test.convertStringTemplate(stringTemplate, envObj)
     assert.equal(outputString, expectedString);
   });
-
-  it('Test convert basic string with environment object', function () {
-
-    const stringTemplate = `<!DOCTYPE html><html><body>{$ my_content $}</body></html>`;
-    const envObj = {
-      my_content: "<div>Hello World!</div>",
-      PROD: {
-        my_content: "<div>## Production content ##</div>"
-      }
-
-    };
-    const expectedString = `<!DOCTYPE html><html><body><div>## Production content ##</div></body></html>`
-
-    const outputString = test.convertStringTemplate(stringTemplate, envObj, "PROD")
-
-    assert.equal(outputString, expectedString);
-  });
 });
 
 /************************* Environme *******************************/
@@ -223,6 +206,12 @@ describe('Run environMe command to convert text files based on environment confi
         </body>
     </html>`;
 
+    const expectedResObj = {
+      config: {
+        url: "https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"
+      }
+    };
+
     const propsContent = `config:
     url: https://www.petguide.com/wp-content/uploads/2013/02/dalmatian-11-475x421.jpg
     PROD:
@@ -232,7 +221,7 @@ describe('Run environMe command to convert text files based on environment confi
     fs.writeFileSync("test/test.props.yml", propsContent, 'utf8')
     
     // Act
-    test.environMe("test/*", "PROD")
+    var resObj = test.environMe("test/*", "PROD")
 
     // Assert
     const fileExists = fs.existsSync("test/test.html")
@@ -240,6 +229,7 @@ describe('Run environMe command to convert text files based on environment confi
 
     assert.equal(fileExists, true);
     assert.equal(expectedContent, actualContent);
+    assert.equal(JSON.stringify(resObj), JSON.stringify(expectedResObj));
 
     // Tidy
     fs.unlinkSync("test/test.html")
