@@ -2,7 +2,6 @@ name: Node.js Package
 
 on: [push]
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,7 +17,7 @@ jobs:
       - run: npm test
         working-directory: ./source/javascript
 
-  publish-npm:
+  publish-npm: 
     needs: build
     runs-on: ubuntu-latest
     steps:

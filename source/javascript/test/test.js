@@ -224,7 +224,9 @@ describe('Run environMe command to convert text files based on environment confi
     </html>`;
 
     const propsContent = `config:
-    url: https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg`;
+    url: https://www.petguide.com/wp-content/uploads/2013/02/dalmatian-11-475x421.jpg
+    PROD:
+        url: https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg`;
 
     fs.writeFileSync("test/test.template.html", templateContent, 'utf8')
     fs.writeFileSync("test/test.props.yml", propsContent, 'utf8')
@@ -243,8 +245,6 @@ describe('Run environMe command to convert text files based on environment confi
     fs.unlinkSync("test/test.html")
     fs.unlinkSync("test/test.template.html")
     fs.unlinkSync("test/test.props.yml")
-
-
   });
 });
 

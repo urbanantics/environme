@@ -51,23 +51,21 @@ function environMe(
       });
   
       if(verboseLogs){
+        console.log("List of template files to be environed");
         console.log(templates);
       }
       
       for (let index = 0; index < templates.length; index++) {
         const template = templates[index];
-
-  
         const rawTemplate = fs.readFileSync(template.file, 'utf8');
-        const rawprops = fs.readFileSync(template.propsFile, 'utf8');
         const propsObj = yaml.safeLoad(fs.readFileSync(template.propsFile, 'utf8'));
   
         if(verboseLogs){
-            console.log("*** raw yml ***");
+            console.log("*** input yml config ***");
             console.log(propsObj);
         }
         
-        const outputString = convertStringTemplate(rawTemplate, propsObj, targetEnvironment);
+        const outputString = convertStringTemplate(rawTemplate, propsObj, targetEnvironment, verboseLogs);
   
         fs.writeFileSync(template.outputFile, outputString, 'utf8');
       }
@@ -92,13 +90,19 @@ function environMe(
   function convertStringTemplate(
     stringTemplate,
     flatObj,
-    targetEnvironment
+    targetEnvironment,
+    verboseLogs
   ) {
   
     var returnString = stringTemplate;
     var result = {};
   
     const envObj = flattenObject(flatObj, targetEnvironment)
+
+    if(verboseLogs){
+        console.log("*** flattened yml config ***");
+        console.log(flatObj);
+    }
   
     // https://stackoverflow.com/questions/11592033/regex-match-text-between-tags
     stringTemplate.match(/{\$(.*?)\$}/g).forEach(function (rawTag) {

@@ -1,6 +1,3 @@
-<p align="center">
-  <img width="250" src="images/green-tropical-palm.jpg">
-</p>
 <h1 align="center"> Environ Me </h1>
 <p align="center">
   <b >Environ Me is a node.js library for bringing peace and order to your configuration and static content files</b>
@@ -9,6 +6,8 @@
 <br>
 
 ## Description :
+
+<http://environ.me>
 
 Environ Me is a utiliy tool that can be run from the command line, which helps you better organise your static files, by allowing you to separate out and group the parts that change, and hopefully get more of your application configuration into source control. 
 
@@ -56,7 +55,7 @@ config:
     url: https://www.petguide.com/wp-content/uploads/2013/02/dalmatian-11-475x421.jpg
 ```
 
-Environme will look for files that have **&ast;.template** in the name and then find the coresponding **\&ast;.props.yml** file, and use these 2 files to produce the corespondin output file
+Environme will look for files that have **&ast;.template** in the name and then find the coresponding **&ast;.props.yml** file, and use these 2 files to produce the corespondin output file
 
 So say we have a file called **static-page.template.html** and props file called **static-page.props.yml**, and both are in the folder static-content, running the following command:
 
