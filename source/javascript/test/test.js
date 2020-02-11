@@ -330,6 +330,16 @@ describe('Test mapBranches', function () {
 
     assert.equal(environment, "");
   });
+  it('Test mapBranches null', function () {
+
+    const branchMapping = null;
+
+    const currentBranch = "refs/heads/develop";
+
+    const environment = test.mapBranches(branchMapping, currentBranch)
+
+    assert.equal(environment, "");
+  });
 });
 
 

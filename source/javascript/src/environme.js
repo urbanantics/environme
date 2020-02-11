@@ -101,7 +101,7 @@ function mapBranches(
     currentBranch,
     verboseLogs) {
 
-    const branches = branchesStr.split(",");
+    const branches = (branchesStr || "").split(",");
 
     if(verboseLogs){
         console.log(`branchesStr ${branchesStr}`);
