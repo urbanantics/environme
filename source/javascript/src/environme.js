@@ -146,7 +146,7 @@ function flattenObj(sourceObj, keyIn) {
         if (isObject(target)) {
 
             if(keyIn) {
-                const flatObj = flattenObj(target, `${keyIn}.${key}`);
+                const flatObj = flattenObj(target, `${keyIn}_${key}`);
 
                 resObj = mergeDeep(flatObj, resObj);
             } else {
@@ -156,7 +156,7 @@ function flattenObj(sourceObj, keyIn) {
             }
         } else {
 
-            resObj[`${keyIn}.${key}`] = target;
+            resObj[`${keyIn}_${key}`] = target;
         }
     }
 

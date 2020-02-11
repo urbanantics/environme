@@ -207,7 +207,7 @@ describe('Run environMe command to convert text files based on environment confi
     </html>`;
 
     const expectedResObj = {
-      "config.url" : "https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"
+      "config_url" : "https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"
     };
 
     const propsContent = `config:
@@ -279,7 +279,7 @@ describe('Flatten Object', function () {
     };
 
     const expectedObj = {
-      "a.b.c": "my_value"
+      "a_b_c": "my_value"
     };
 
     const flatObj = test.flattenObj(sourceObj)

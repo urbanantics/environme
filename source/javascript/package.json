@@ -1,6 +1,6 @@
 {
   "name": "@urbanantics/environme",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "Build Utility, string replace based on environment configuration",
   "main": "src/index.js",
   "scripts": {
