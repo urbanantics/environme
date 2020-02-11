@@ -217,15 +217,20 @@ describe('Run environMe command to convert text files based on environment confi
 
     fs.writeFileSync("test/test.template.html", templateContent, 'utf8')
     fs.writeFileSync("test/test.props.yml", propsContent, 'utf8')
+
+    fs.writeFileSync("test/test2.template.html", templateContent, 'utf8')
+    fs.writeFileSync("test/test2.props.yml", propsContent, 'utf8')
     
     // Act
     var resObj = test.environMe("test/*", "PROD")
 
     // Assert
     const fileExists = fs.existsSync("test/test.html")
+    const fileExists2 = fs.existsSync("test/test2.html")
     const actualContent = fs.readFileSync("test/test.html", 'utf8')
 
     assert.equal(fileExists, true);
+    assert.equal(fileExists2, true);
     assert.equal(expectedContent, actualContent);
     assert.equal(JSON.stringify(resObj), JSON.stringify(expectedResObj));
 
@@ -233,6 +238,10 @@ describe('Run environMe command to convert text files based on environment confi
     fs.unlinkSync("test/test.html")
     fs.unlinkSync("test/test.template.html")
     fs.unlinkSync("test/test.props.yml")
+
+    fs.unlinkSync("test/test2.html")
+    fs.unlinkSync("test/test2.template.html")
+    fs.unlinkSync("test/test2.props.yml")
   });
 });
 
