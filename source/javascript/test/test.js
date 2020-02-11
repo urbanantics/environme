@@ -45,7 +45,7 @@ describe('Flatten Object', function () {
 
     const targetEnvironment = "TEST"
 
-    const outputObj = test.flattenObject(sourceObj, targetEnvironment)
+    const outputObj = test.deEnvObject(sourceObj, targetEnvironment)
     assert.equal(sourceObj, outputObj);
     assert.equal(sourceObj["connectionString"], "TestDB1")
   });
@@ -61,7 +61,7 @@ describe('Flatten Object', function () {
 
     const targetEnvironment = "TEST"
 
-    const outputObj = test.flattenObject(sourceObj, targetEnvironment)
+    const outputObj = test.deEnvObject(sourceObj, targetEnvironment)
     assert.equal(sourceObj, outputObj);
     assert.equal(sourceObj["connectionString"], "TestDB1")
   });
@@ -79,7 +79,7 @@ describe('Flatten Object', function () {
 
     const targetEnvironment = "TEST"
 
-    const outputObj = test.flattenObject(sourceObj, targetEnvironment)
+    const outputObj = test.deEnvObject(sourceObj, targetEnvironment)
     assert.equal(sourceObj, outputObj);
     assert.equal(sourceObj["connectionString"], "TestDB1")
   });
@@ -98,7 +98,7 @@ describe('Flatten Object', function () {
 
     const targetEnvironment = "TEST"
 
-    const outputObj = test.flattenObject(sourceObj, targetEnvironment)
+    const outputObj = test.deEnvObject(sourceObj, targetEnvironment)
     assert.equal(sourceObj, outputObj);
     assert.equal(sourceObj["connectionString"], "TestDB1")
   });
@@ -119,7 +119,7 @@ describe('Flatten Object', function () {
 
     const targetEnvironment = "PROD"
 
-    const outputObj = test.flattenObject(sourceObj, targetEnvironment)
+    const outputObj = test.deEnvObject(sourceObj, targetEnvironment)
     assert.equal(JSON.stringify(outputObj.machineList), JSON.stringify(arrayRes));
   });
 });
@@ -207,9 +207,7 @@ describe('Run environMe command to convert text files based on environment confi
     </html>`;
 
     const expectedResObj = {
-      config: {
-        url: "https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"
-      }
+      "config.url" : "https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"
     };
 
     const propsContent = `config:
@@ -258,3 +256,72 @@ describe('Replace Environment Variable References', function () {
     assert.equal(JSON.stringify(flatObj), JSON.stringify(expectedObj));
   });
 });
+
+/************************* Flatten Object *******************************/
+describe('Flatten Object', function () {
+  it('Basic Flatten Object', function () {
+
+    const sourceObj = {
+      a: {
+        b: {
+          c: "my_value"
+        }
+      }
+    };
+
+    const expectedObj = {
+      "a.b.c": "my_value"
+    };
+
+    const flatObj = test.flattenObj(sourceObj)
+
+    assert.equal(JSON.stringify(flatObj), JSON.stringify(expectedObj));
+  });
+});
+
+/************************* Map Branches *******************************/
+describe('Test mapBranches', function () {
+  it('Basic mapBranches Object', function () {
+
+    const branchMapping = "develop=DEV,feature/=TEST,master=PROD";
+
+    const currentBranch = "refs/heads/master";
+
+    const environment = test.mapBranches(branchMapping, currentBranch)
+
+    assert.equal(environment, "PROD");
+  });
+  it('Basic mapBranches Object 2', function () {
+
+    const branchMapping = "develop=DEV,feature/=TEST,master=PROD";
+
+    const currentBranch = "refs/heads/feature/my-feature";
+
+    const environment = test.mapBranches(branchMapping, currentBranch)
+
+    assert.equal(environment, "TEST");
+  });
+  it('Basic mapBranches missing mapping', function () {
+
+    const branchMapping = "develop=DEV,feature/=TEST,master=PROD";
+
+    const currentBranch = "refs/heads/release/my-feature";
+
+    const environment = test.mapBranches(branchMapping, currentBranch)
+
+    assert.equal(environment, "");
+  });
+  it('Basic mapBranches malformed mapping', function () {
+
+    const branchMapping = "develop=DEV=TEST,feature/=TEST,master=PROD";
+
+    const currentBranch = "refs/heads/develop";
+
+    const environment = test.mapBranches(branchMapping, currentBranch)
+
+    assert.equal(environment, "");
+  });
+});
+
+
+

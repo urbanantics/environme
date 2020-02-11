@@ -3,44 +3,6 @@ const fs = require('fs')
 const yaml = require('js-yaml');
 
 /**
- * Simple object check.
- * @param sourceObj
- * Object that contains references to environment variables in the for of {$ variable_name $}
- * @param envObj
- * object that contains hash of environment variable key value pairs
- * @returns updates sourceObj inline
- */
-function resolveVariableReferences(sourceObj, envObj) {
-
-    for (const key in sourceObj) {
-
-        var target = sourceObj[key];
-
-        if (isObject(target)) {
-
-            resolveVariableReferences(target, envObj);
-
-        } else {
-
-            // https://stackoverflow.com/questions/11592033/regex-match-text-between-tags
-            target.match(/{\$(.*?)\$}/g).forEach(function (rawTag) {
-                var tag = rawTag.replace(/(^{\$\s*)|(\s*\$})$/g, '');
-                var value = Object.byString(envObj, tag);
-
-                if (value && value !== Object(value)) {
-
-                    sourceObj[key] = value;
-                }
-            });
-        }
-    }
-}
-
-module.exports = {
-    resolveVariableReferences: resolveVariableReferences,
-}
-
-/**
  * Environ Me, Accepts a listo of files as input and converts content based on configuration.
  * Files names must have the format *.template{.ext}
  * For instance app.template.config, the function will match config files called app.props.yml, and use the contents
@@ -103,22 +65,131 @@ function environMe(
                 console.log(propsObj);
             }
 
-            const flatObj = flattenObject(propsObj, targetEnvironment)
+            const noEnvObj = deEnvObject(propsObj, targetEnvironment)
 
             if (verboseLogs) {
                 console.log("*** flattened yml config ***");
-                console.log(flatObj);
+                console.log(noEnvObj);
             }
 
-            const outputString = convertStringTemplate(rawTemplate, flatObj);
+            const outputString = convertStringTemplate(rawTemplate, noEnvObj);
 
             fs.writeFileSync(template.outputFile, outputString, 'utf8');
 
-            return flatObj;
+            return flattenObj(noEnvObj);
         }
 
     } catch (err) {
         console.error(err)
+    }
+}
+
+/**
+ * flatten nested object into string hash
+ * @param branchesStr
+ * Object representing branch mapping
+ * @param currentBranch
+ * Branch name to match branches object against
+ * @returns [String ] Target Environment or else empty string
+ */
+function mapBranches(branchesStr, currentBranch) {
+
+    const branches = branchesStr.split(",");
+
+    console.log(`branchesStr ${branchesStr}`);
+    console.log(`currentBranch ${currentBranch}`);
+    console.log("branches:");
+    console.log(branches);
+
+    for (let index = 0; index < branches.length; index++) {
+        const branch = branches[index]
+
+        console.log(`branch: ${branch}`);
+
+        const branchSplit = branch.split('=');
+        console.log("branchSplit:");
+        console.log(branchSplit);
+
+        console.log(`branchSplit.length ${branchSplit.length}`);
+
+        if(branchSplit.length != 2){
+            continue;
+        }
+        if(currentBranch.includes(branchSplit[0])){
+            return branchSplit[1];
+        }
+    }
+
+    return "";
+
+}
+
+
+/**
+ * flatten nested object into string hash
+ * @param sourceObj
+ * Object to be flattened
+ * @returns flattened object
+ */
+function flattenObj(sourceObj, keyIn) {
+
+    var resObj = {};
+
+    for (const key in sourceObj) {
+
+        var target = sourceObj[key];
+
+        if (isObject(target)) {
+
+            if(keyIn) {
+                const flatObj = flattenObj(target, `${keyIn}.${key}`);
+
+                resObj = mergeDeep(flatObj, resObj);
+            } else {
+                const flatObj = flattenObj(target, `${key}`);
+
+                resObj = mergeDeep(flatObj, resObj);
+            }
+        } else {
+
+            resObj[`${keyIn}.${key}`] = target;
+        }
+    }
+
+    return resObj;
+}
+
+/**
+ * Simple object check.
+ * @param sourceObj
+ * Object that contains references to environment variables in the for of {$ variable_name $}
+ * @param envObj
+ * object that contains hash of environment variable key value pairs
+ * @returns updates sourceObj inline
+ */
+function resolveVariableReferences(sourceObj, envObj) {
+
+    for (const key in sourceObj) {
+
+        var target = sourceObj[key];
+
+        if (isObject(target)) {
+
+            resolveVariableReferences(target, envObj);
+
+        } else {
+
+            // https://stackoverflow.com/questions/11592033/regex-match-text-between-tags
+            target.match(/{\$(.*?)\$}/g).forEach(function (rawTag) {
+                var tag = rawTag.replace(/(^{\$\s*)|(\s*\$})$/g, '');
+                var value = Object.byString(envObj, tag);
+
+                if (value && value !== Object(value)) {
+
+                    sourceObj[key] = value;
+                }
+            });
+        }
     }
 }
 
@@ -169,9 +240,9 @@ function convertStringTemplate(
  * @param environmentList
  * list of all the environments contained in the config
  * @returns {object}
- * Flattened json object
+ * json object with environment properties merged out 
  */
-function flattenObject(
+function deEnvObject(
     sourceObj,
     targetEnvironment) {
 
@@ -181,7 +252,7 @@ function flattenObject(
 
         if (isObject(target)) {
 
-            flattenObject(target, targetEnvironment);
+            deEnvObject(target, targetEnvironment);
 
         }
 
@@ -254,9 +325,11 @@ Object.byString = function (o, s) {
 }
 
 module.exports = {
+    mapBranches: mapBranches,
     resolveVariableReferences: resolveVariableReferences,
+    flattenObj: flattenObj,
     environMe: environMe,
     convertStringTemplate: convertStringTemplate,
     mergeDeep: mergeDeep,
-    flattenObject: flattenObject
+    deEnvObject: deEnvObject
 }
