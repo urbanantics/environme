@@ -92,25 +92,25 @@ function environMe(
  * Branch name to match branches object against
  * @returns [String ] Target Environment or else empty string
  */
-function mapBranches(branchesStr, currentBranch) {
+function mapBranches(
+    branchesStr, 
+    currentBranch,
+    verboseLogs) {
 
     const branches = branchesStr.split(",");
 
-    console.log(`branchesStr ${branchesStr}`);
-    console.log(`currentBranch ${currentBranch}`);
-    console.log("branches:");
-    console.log(branches);
+    if(verboseLogs){
+        console.log(`branchesStr ${branchesStr}`);
+        console.log(`currentBranch ${currentBranch}`);
+        console.log("branches:");
+        console.log(branches);
+    }
+    
 
     for (let index = 0; index < branches.length; index++) {
         const branch = branches[index]
 
-        console.log(`branch: ${branch}`);
-
         const branchSplit = branch.split('=');
-        console.log("branchSplit:");
-        console.log(branchSplit);
-
-        console.log(`branchSplit.length ${branchSplit.length}`);
 
         if(branchSplit.length != 2){
             continue;
