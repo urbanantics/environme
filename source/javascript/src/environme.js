@@ -69,8 +69,6 @@ function environMe(
 
             const noEnvObj = deEnvObject(propsObj, targetEnvironment)
 
-            returnObj = mergeDeep(noEnvObj, returnObj);
-
             if (verboseLogs) {
                 console.log("*** flattened yml config ***");
                 console.log(noEnvObj);
@@ -79,6 +77,8 @@ function environMe(
             const outputString = convertStringTemplate(rawTemplate, noEnvObj);
 
             fs.writeFileSync(template.outputFile, outputString, 'utf8');
+
+            returnObj = mergeDeep(noEnvObj, returnObj);
         }
 
         return flattenObj(returnObj);
