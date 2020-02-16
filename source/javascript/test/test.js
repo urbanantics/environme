@@ -207,7 +207,9 @@ describe('Run environMe command to convert text files based on environment confi
     </html>`;
 
     const expectedResObj = {
-      "config_url" : "https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"
+      config: {
+        url : "https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"
+      }
     };
 
     const propsContent = `config:
@@ -222,7 +224,7 @@ describe('Run environMe command to convert text files based on environment confi
     fs.writeFileSync("test/test2.props.yml", propsContent, 'utf8')
     
     // Act
-    var resObj = test.environMe("test/*", "PROD")
+    var resObj = test.environMe("test/*", "PROD", true)
 
     // Assert
     const fileExists = fs.existsSync("test/test.html")
@@ -339,6 +341,28 @@ describe('Test mapBranches', function () {
     const environment = test.mapBranches(branchMapping, currentBranch)
 
     assert.equal(environment, "");
+  });
+});
+
+/************************* getBranchMapping *******************************/
+describe('getBranchMapping', function () {
+  it('Test basic getBranchMapping function', function () {
+
+    // Arrange
+   
+    const expectedEnv = `PROD`;
+    const propsContent = `someObj:
+    branch_mapping:
+      DEV: "feature/"
+      PROD: "/master"`;
+
+    fs.writeFileSync("test/test.props.yml", propsContent, 'utf8')
+
+    // Act
+    var resObj = test.getBranchMapping("test/*", "origin/master", true)
+
+    // Assert
+    assert.equal(resObj, expectedEnv);
   });
 });
 

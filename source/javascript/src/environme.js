@@ -1,5 +1,5 @@
-const glob = require("glob")
-const fs = require('fs')
+const glob = require("glob");
+const fs = require('fs');
 const yaml = require('js-yaml');
 
 /**
@@ -21,45 +21,20 @@ function environMe(
 
     try {
 
-        // https://github.com/isaacs/node-glob
-
-        const files = glob.sync(path);
-
-        var templates = [];
-
+        
         var returnObj = {};
 
-        files.forEach(function (file) {
-            if (file.match(/\.template/)) {
-                console.log(`Matched template ${file}`);
-
-                const temp = file.replace(/\.template.*/, '');
-                const ext = file.replace(/.*\.template/, '');
-                const propsFile = `${temp}.props.yml`;
-                const outputFile = `${temp}${ext}`;
-
-                if (fs.existsSync(propsFile)) {
-                    console.log(`Matched props file ${propsFile}`);
-                    console.log(`Output file ${outputFile}`);
-
-                    templates.push({
-                        file: file,
-                        propsFile: propsFile,
-                        outputFile: outputFile
-                    });
-
-                }
-            }
-        });
-
+        var templates = getTemplatePaths(path);
+        
         if (verboseLogs) {
             console.log("List of template files to be environed");
             console.log(templates);
         }
 
         for (let index = 0; index < templates.length; index++) {
+
             const template = templates[index];
-            const rawTemplate = fs.readFileSync(template.file, 'utf8');
+            const rawTemplate = fs.readFileSync(template.file, 'utf8') || "";
             const propsObj = yaml.safeLoad(fs.readFileSync(template.propsFile, 'utf8'));
 
             if (verboseLogs) {
@@ -67,7 +42,7 @@ function environMe(
                 console.log(propsObj);
             }
 
-            const noEnvObj = deEnvObject(propsObj, targetEnvironment)
+            const noEnvObj = deEnvObject(propsObj, targetEnvironment);
 
             if (verboseLogs) {
                 console.log("*** flattened yml config ***");
@@ -81,10 +56,111 @@ function environMe(
             returnObj = mergeDeep(noEnvObj, returnObj);
         }
 
-        return flattenObj(returnObj);
+        return returnObj;
 
     } catch (err) {
         console.error(err)
+    }
+}
+
+function getTemplatePaths(path){
+
+    // https://github.com/isaacs/node-glob
+    const files = glob.sync(path);
+    var templates = [];
+
+    files.forEach(function (file) {
+
+        if (file.match(/\.props\.yml/)) {
+            console.log(`Matched props file ${file}`);
+
+            const temp = file.replace(/\.template.*/, '');
+            const fileStart = file.replace(/\.props\.yml/, '');
+
+            var match = "";
+            files.forEach(function (el) {
+                if (el.includes(`${fileStart}.template`)) {
+                    match = el;
+                }
+            });
+
+            //el.match(/\.template/
+            //const propsFile = `${temp}.props.yml`;
+            //const outputFile = `${temp}${ext}`;
+
+            const outputFile = match.replace(/\.template/, '');
+
+            console.log(`Matched template file ${match}`);
+            console.log(`Output file ${outputFile}`);
+
+            templates.push({
+                propsFile: file,
+                file: match,
+                outputFile: outputFile
+            });
+        }
+    });
+
+    return templates;
+
+}
+
+function getBranchMapping(
+    path,
+    branch,
+    verboseLogs
+){
+
+    var templates = getTemplatePaths(path);
+    var mergeObj = {};
+
+    for (let index = 0; index < templates.length; index++) {
+
+        const template = templates[index];
+
+        const propsObj = yaml.safeLoad(fs.readFileSync(template.propsFile, 'utf8'));
+
+        if (verboseLogs) {
+            console.log("*** Get Branch Mapping input yml config ***");
+            console.log(propsObj);
+        }
+
+        mergeObj = mergeDeep(propsObj, mergeObj);
+    }
+
+    const mapping = findKey(mergeObj, "branch_mapping", verboseLogs);
+
+    console.log(`MAPPING`)
+    console.log(mapping)
+
+    for (const key in mapping) {
+
+        var target = mapping[key];
+
+        console.log(`- checking mapping key:${key}, target:${target} against ${branch}`)
+
+        if(branch.includes(target)){
+            return key;
+        }
+    }
+}
+
+function findKey(sourceObj, searchKey){
+
+    for (const key in sourceObj) {
+
+        var target = sourceObj[key];
+
+        if (key == searchKey){
+
+            console.log(`found key ${key}`)
+            console.log(target)
+            return target;
+        }
+
+        if (isObject(target)) {
+            return findKey(target, searchKey)
+        }
     }
 }
 
@@ -97,29 +173,28 @@ function environMe(
  * @returns [String ] Target Environment or else empty string
  */
 function mapBranches(
-    branchesStr, 
+    branchesStr,
     currentBranch,
     verboseLogs) {
 
     const branches = (branchesStr || "").split(",");
 
-    if(verboseLogs){
+    if (verboseLogs) {
         console.log(`branchesStr ${branchesStr}`);
         console.log(`currentBranch ${currentBranch}`);
         console.log("branches:");
         console.log(branches);
     }
-    
 
     for (let index = 0; index < branches.length; index++) {
-        const branch = branches[index]
+        const branch = branches[index];
 
         const branchSplit = branch.split('=');
 
-        if(branchSplit.length != 2){
+        if (branchSplit.length != 2) {
             continue;
         }
-        if(currentBranch.includes(branchSplit[0])){
+        if (currentBranch.includes(branchSplit[0])) {
             return branchSplit[1];
         }
     }
@@ -145,7 +220,7 @@ function flattenObj(sourceObj, keyIn) {
 
         if (isObject(target)) {
 
-            if(keyIn) {
+            if (keyIn) {
                 const flatObj = flattenObj(target, `${keyIn}_${key}`);
 
                 resObj = mergeDeep(flatObj, resObj);
@@ -212,8 +287,10 @@ function convertStringTemplate(
     flatObj
 ) {
 
-    var returnString = stringTemplate;
+    var returnString = stringTemplate || "";
     var result = {};
+
+    if (!stringTemplate) return "";
 
     // https://stackoverflow.com/questions/11592033/regex-match-text-between-tags
     stringTemplate.match(/{\$(.*?)\$}/g).forEach(function (rawTag) {
@@ -229,7 +306,7 @@ function convertStringTemplate(
 
     for (const key in result) {
 
-        returnString = returnString.replace(key, result[key])
+        returnString = returnString.replace(key, result[key]);
     }
 
     return returnString;
@@ -266,7 +343,7 @@ function deEnvObject(
 
             delete sourceObj[key];
 
-            sourceObj = mergeDeep(sourceObj, envProp)
+            sourceObj = mergeDeep(sourceObj, envProp);
         }
 
     }
@@ -329,6 +406,7 @@ Object.byString = function (o, s) {
 }
 
 module.exports = {
+    getBranchMapping: getBranchMapping,
     mapBranches: mapBranches,
     resolveVariableReferences: resolveVariableReferences,
     flattenObj: flattenObj,

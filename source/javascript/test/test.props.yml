@@ -1,0 +1,4 @@
+someObj:
+    branch_mapping:
+      DEV: "feature/"
+      PROD: "/master"
