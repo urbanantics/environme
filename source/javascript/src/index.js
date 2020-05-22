@@ -16,9 +16,9 @@ console.log(
 );
 
 const options = yargs
-  .usage("Usage: -path <path> -env <environment>")
+  .usage("Usage: -path <path> -env <environment(s,)>")
   .option("path", { alias: "p", describe: "Path to template file, can use wild card such as **/* to locate multiple files", type: "string", demandOption: true })
-  .option("env", { alias: "e", describe: "Target environment, which will be used to generate environmemt configuration", type: "string", default: "" })
+  .option("env", { alias: "e", describe: "environment(s), comma separated, will be used to generate environmemt configuration", type: "string", default: "" })
   .option("verbose", { alias: "v", describe: "true, if should run with verbose logging", type: "boolean", default: false })
   .option("output-vars", { alias: "o", describe: "true, if should output config object to environment variables", type: "boolean", default: false })
   .option("branch", { alias: "b", describe: `If set, match against branch mapping to determine environment. ensure you have a key called branch_mapping in your props.yml in form branch1=Evn1,branch2=Env2..`, type: "string", default: "" })
@@ -33,7 +33,7 @@ console.log(`--branch ${options.branch}`);
 try {
   if (options.path) {
 
-    var targetEnv = options.env;
+    var targetEnv = (options.env || "").split(",");
 
     if(options.mapping){
       targetEnv = urbanantics.getBranchMapping(options.path, options.branch);

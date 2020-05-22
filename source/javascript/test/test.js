@@ -245,7 +245,104 @@ describe('Run environMe command to convert text files based on environment confi
     fs.unlinkSync("test/test2.template.html")
     fs.unlinkSync("test/test2.props.yml")
   });
+
+  it('Test environMe command to convert text files based on environment config', function () {
+
+    // Arrange
+    const templateContent = `<!DOCTYPE html>
+    <html>
+        <body>
+            <div>
+                <img src="{ config.url }"/>
+            </div>
+        </body>
+    </html>`;
+
+    const expectedContent = `<!DOCTYPE html>
+    <html>
+        <body>
+            <div>
+                <img src="{ config.url }"/>
+            </div>
+        </body>
+    </html>`;
+
+    
+    const propsContent = `config:
+    url: https://www.petguide.com/wp-content/uploads/2013/02/dalmatian-11-475x421.jpg
+    PROD:
+        url: https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg`;
+
+    fs.writeFileSync("test/test.template.html", templateContent, 'utf8')
+    fs.writeFileSync("test/test.props.yml", propsContent, 'utf8')
+
+    
+    // Act
+    var resObj = test.environMe("test/*", "PROD", true)
+
+    // Assert
+    const fileExists = fs.existsSync("test/test.html")
+    const actualContent = fs.readFileSync("test/test.html", 'utf8')
+
+    assert.equal(fileExists, true);
+    assert.equal(expectedContent, actualContent);
+
+    // Tidy
+    fs.unlinkSync("test/test.html")
+    fs.unlinkSync("test/test.template.html")
+    fs.unlinkSync("test/test.props.yml")
+  });
+
+  it('Test environMe command to convert text files based on multiple environment config', function () {
+
+    // Arrange
+    const templateContent = `<!DOCTYPE html>
+    <html>
+        <body>
+            <div>
+                <img src="{ config.url }"/>
+            </div>
+        </body>
+    </html>`;
+
+    const expectedContent = `<!DOCTYPE html>
+    <html>
+        <body>
+            <div>
+                <img src="{ config.url }"/>
+            </div>
+        </body>
+    </html>`;
+
+    
+    const propsContent = `config:
+    url: https://www.petguide.com/wp-content/uploads/2013/02/dalmatian-11-475x421.jpg
+    PROD:
+        Server-1:
+            url: https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg`;
+
+    fs.writeFileSync("test/test.template.html", templateContent, 'utf8')
+    fs.writeFileSync("test/test.props.yml", propsContent, 'utf8')
+
+    
+    // Act
+    var resObj = test.environMe("test/*", ["PROD","Server-1"], true)
+
+    // Assert
+    const fileExists = fs.existsSync("test/test.html")
+    const actualContent = fs.readFileSync("test/test.html", 'utf8')
+
+    assert.equal(fileExists, true);
+    assert.equal(expectedContent, actualContent);
+
+    // Tidy
+    fs.unlinkSync("test/test.html")
+    fs.unlinkSync("test/test.template.html")
+    fs.unlinkSync("test/test.props.yml")
+  });
 });
+
+
 
 /************************* Convert String Template *******************************/
 describe('Replace Environment Variable References', function () {
@@ -289,6 +386,7 @@ describe('Flatten Object', function () {
     assert.equal(JSON.stringify(flatObj), JSON.stringify(expectedObj));
   });
 });
+
 
 /************************* Map Branches *******************************/
 describe('Test mapBranches', function () {

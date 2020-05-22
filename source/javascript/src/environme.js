@@ -15,19 +15,18 @@ const yaml = require('js-yaml');
  */
 function environMe(
     path,
-    targetEnvironment,
+    targetEnvironments,
     verboseLogs
 ) {
 
     try {
 
-        
         var returnObj = {};
 
         var templates = getTemplatePaths(path);
         
         if (verboseLogs) {
-            console.log("List of template files to be environed");
+            console.log("List of template files to be environme'd");
             console.log(templates);
         }
 
@@ -42,7 +41,7 @@ function environMe(
                 console.log(propsObj);
             }
 
-            const noEnvObj = deEnvObject(propsObj, targetEnvironment);
+            const noEnvObj = deEnvObject(propsObj, targetEnvironments);
 
             if (verboseLogs) {
                 console.log("*** flattened yml config ***");
@@ -259,7 +258,7 @@ function resolveVariableReferences(sourceObj, envObj) {
         } else {
 
             // https://stackoverflow.com/questions/11592033/regex-match-text-between-tags
-            target.match(/{\$(.*?)\$}/g).forEach(function (rawTag) {
+            (target.match(/{\$(.*?)\$}/g) || []).forEach(function (rawTag) {
                 var tag = rawTag.replace(/(^{\$\s*)|(\s*\$})$/g, '');
                 var value = Object.byString(envObj, tag);
 
@@ -293,7 +292,7 @@ function convertStringTemplate(
     if (!stringTemplate) return "";
 
     // https://stackoverflow.com/questions/11592033/regex-match-text-between-tags
-    stringTemplate.match(/{\$(.*?)\$}/g).forEach(function (rawTag) {
+    (stringTemplate.match(/{\$(.*?)\$}/g) || []).forEach(function (rawTag) {
         var tag = rawTag.replace(/(^{\$\s*)|(\s*\$})$/g, '');
         var value = Object.byString(flatObj, tag);
 
@@ -325,28 +324,38 @@ function convertStringTemplate(
  */
 function deEnvObject(
     sourceObj,
-    targetEnvironment) {
+    targetEnvironments) {
 
-    for (const key in sourceObj) {
-
-        var target = sourceObj[key];
-
-        if (isObject(target)) {
-
-            deEnvObject(target, targetEnvironment);
-
-        }
-
-        if (key == targetEnvironment) {
-
-            const envProp = sourceObj[key];
-
-            delete sourceObj[key];
-
-            sourceObj = mergeDeep(sourceObj, envProp);
-        }
-
+    if(!Array.isArray(targetEnvironments)){
+        console.log(`<${targetEnvironments}> is not an array, turning into array`);
+        targetEnvironments = [targetEnvironments]; 
     }
+
+    for (const targetEnvironment of targetEnvironments){
+
+        for (const key in sourceObj) {
+
+            var target = sourceObj[key];
+    
+            if (isObject(target)) {
+    
+                deEnvObject(target, targetEnvironment);
+    
+            }
+    
+            if (key == targetEnvironment) {
+    
+                const envProp = sourceObj[key];
+    
+                delete sourceObj[key];
+    
+                sourceObj = mergeDeep(sourceObj, envProp);
+            }
+    
+        }
+    }
+
+    
 
     return sourceObj
 }
