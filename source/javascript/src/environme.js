@@ -309,8 +309,6 @@ function convertStringTemplate(
         var regEx = new RegExp(searchMaskEsc, "ig");
         var replaceMask = result[key];
 
-        console.log(`key:${key},searchMaskEsc:${searchMaskEsc},replacemask:${replaceMask}`);
-
         returnString = returnString.replace(regEx, replaceMask);
 
         //returnString = returnString.split(key).join(result[key]);
@@ -339,7 +337,7 @@ function deEnvObject(
     targetEnvironments) {
 
     if(!Array.isArray(targetEnvironments)){
-        console.log(`<${targetEnvironments}> is not an array, turning into array`);
+        //console.log(`<${targetEnvironments}> is not an array, turning into array`);
         targetEnvironments = [targetEnvironments]; 
     }
 
