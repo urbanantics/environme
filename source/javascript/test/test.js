@@ -122,6 +122,8 @@ describe('Flatten Object', function () {
     const outputObj = test.deEnvObject(sourceObj, targetEnvironment)
     assert.equal(JSON.stringify(outputObj.machineList), JSON.stringify(arrayRes));
   });
+
+
 });
 
 /************************* Convert String Template *******************************/
@@ -193,6 +195,8 @@ describe('Run environMe command to convert text files based on environment confi
         <body>
             <div>
                 <img src="{$ config.url $}"/>
+                <img src="{$ config.url $}"/>
+                <img src="{$ config.url $}"/>
             </div>
         </body>
     </html>`;
@@ -202,19 +206,24 @@ describe('Run environMe command to convert text files based on environment confi
         <body>
             <div>
                 <img src="https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"/>
+                <img src="https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"/>
+                <img src="https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"/>
             </div>
         </body>
     </html>`;
 
     const expectedResObj = {
       config: {
-        url : "https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"
+        url : "https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg",
+        prod: {
+          url : "https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg"
+        }
       }
     };
 
     const propsContent = `config:
     url: https://www.petguide.com/wp-content/uploads/2013/02/dalmatian-11-475x421.jpg
-    PROD:
+    prod:
         url: https://www.petguide.com/wp-content/uploads/2013/05/pitbull.jpg`;
 
     fs.writeFileSync("test/test.template.html", templateContent, 'utf8')
@@ -225,6 +234,8 @@ describe('Run environMe command to convert text files based on environment confi
     
     // Act
     var resObj = test.environMe("test/*", "PROD", true)
+
+    console.log("Test basic environMe command done");
 
     // Assert
     const fileExists = fs.existsSync("test/test.html")
@@ -378,10 +389,33 @@ describe('Flatten Object', function () {
     };
 
     const expectedObj = {
-      "a_b_c": "my_value"
+      "a.b.c": "my_value"
     };
 
     const flatObj = test.flattenObj(sourceObj)
+
+    assert.equal(JSON.stringify(flatObj), JSON.stringify(expectedObj));
+  });
+
+  it('DeEnv object should preseve Environment Properties', function () {
+
+    const sourceObj = {
+      a: {
+        dev: {
+          c: "my_value"
+        }
+      }
+    };
+
+    const targetEnvironment = "dev";
+    const expectedObj = {
+      "a.dev.c": "my_value",
+      "a.c": "my_value"
+    };
+
+
+    const deEnvObj = test.deEnvObject(sourceObj, targetEnvironment)
+    const flatObj = test.flattenObj(deEnvObj)
 
     assert.equal(JSON.stringify(flatObj), JSON.stringify(expectedObj));
   });

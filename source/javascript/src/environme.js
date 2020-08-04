@@ -220,7 +220,7 @@ function flattenObj(sourceObj, keyIn) {
         if (isObject(target)) {
 
             if (keyIn) {
-                const flatObj = flattenObj(target, `${keyIn}_${key}`);
+                const flatObj = flattenObj(target, `${keyIn}.${key}`);
 
                 resObj = mergeDeep(flatObj, resObj);
             } else {
@@ -230,7 +230,7 @@ function flattenObj(sourceObj, keyIn) {
             }
         } else {
 
-            resObj[`${keyIn}_${key}`] = target;
+            resObj[`${keyIn}.${key}`] = target;
         }
     }
 
@@ -305,10 +305,22 @@ function convertStringTemplate(
 
     for (const key in result) {
 
-        returnString = returnString.replace(key, result[key]);
+        var searchMaskEsc = escapeRegex(key);
+        var regEx = new RegExp(searchMaskEsc, "ig");
+        var replaceMask = result[key];
+
+        console.log(`key:${key},searchMaskEsc:${searchMaskEsc},replacemask:${replaceMask}`);
+
+        returnString = returnString.replace(regEx, replaceMask);
+
+        //returnString = returnString.split(key).join(result[key]);
     }
 
     return returnString;
+}
+
+function escapeRegex(string) {
+    return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
 /**
@@ -343,11 +355,11 @@ function deEnvObject(
     
             }
     
-            if (key == targetEnvironment) {
+            if (key.toLowerCase() == targetEnvironment.toLowerCase()) {
     
                 const envProp = sourceObj[key];
     
-                delete sourceObj[key];
+                //delete sourceObj[key];
     
                 sourceObj = mergeDeep(sourceObj, envProp);
             }
